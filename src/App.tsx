@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { CamoCanvas } from './components/CamoCanvas';
 import type { CamoCanvasHandle } from './components/CamoCanvas';
 import { M90Renderer } from './renderer/WebGLRenderer';
@@ -6,6 +6,21 @@ import { COLOR_PRESETS, hexToGL } from './presets';
 import Controls from './components/Controls';
 import HowItWorks from './components/HowItWorks';
 import './App.css';
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(
+    () => window.matchMedia('(max-width: 768px)').matches
+  );
+
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 768px)');
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, []);
+
+  return isMobile;
+}
 
 function App() {
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 100000));
@@ -16,6 +31,14 @@ function App() {
   const [height, setHeight] = useState(1024);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const canvasRef = useRef<CamoCanvasHandle>(null);
+
+  const isMobile = useIsMobile();
+  const [panelOpen, setPanelOpen] = useState(!isMobile);
+
+  // Sync panelOpen when switching between mobile/desktop
+  useEffect(() => {
+    setPanelOpen(!isMobile);
+  }, [isMobile]);
 
   const glColors = useMemo(() => {
     const preset = COLOR_PRESETS.find((p) => p.id === presetId) ?? COLOR_PRESETS[0];
@@ -62,7 +85,12 @@ function App() {
           height={height}
         />
       </div>
-      <div className="panel-overlay">
+
+      {isMobile && panelOpen && (
+        <div className="panel-backdrop" onClick={() => setPanelOpen(false)} />
+      )}
+
+      <div className={`panel-overlay${isMobile && !panelOpen ? ' panel-hidden' : ''}`}>
         <Controls
           seed={seed}
           scale={scale}
@@ -80,6 +108,17 @@ function App() {
           onShowHowItWorks={() => setShowHowItWorks(true)}
         />
       </div>
+
+      {isMobile && (
+        <button
+          className={`panel-toggle${panelOpen ? ' panel-toggle-hidden' : ''}`}
+          onClick={() => setPanelOpen(true)}
+          aria-label="Open controls"
+        >
+          ⚙
+        </button>
+      )}
+
       {showHowItWorks && <HowItWorks onClose={() => setShowHowItWorks(false)} />}
     </div>
   );
