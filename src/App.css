@@ -392,6 +392,7 @@
   line-height: 1;
   padding: 4px;
   transition: color 0.2s;
+  z-index: 1;
 }
 
 .hiw-close:hover {
@@ -694,5 +695,20 @@
   .hiw-modal {
     padding: 20px 16px;
     max-height: calc(100vh - 24px);
+  }
+
+  .hiw-close {
+    position: sticky;
+    top: 0;
+    float: right;
+    margin: -8px -4px 0 0;
+    background: rgba(22, 22, 22, 0.9);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
   }
 }

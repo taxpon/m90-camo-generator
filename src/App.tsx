@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { GIFEncoder, quantize, applyPalette } from 'gifenc';
+import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 import { CamoCanvas } from './components/CamoCanvas';
 import type { CamoCanvasHandle } from './components/CamoCanvas';
 import { M90Renderer } from './renderer/WebGLRenderer';
@@ -29,8 +30,8 @@ function App() {
   const [scale, setScale] = useState(6);
   const [complexity, setComplexity] = useState(0.5);
   const [presetId, setPresetId] = useState('m90');
-  const [width, setWidth] = useState(1024);
-  const [height, setHeight] = useState(1024);
+  const [width, setWidth] = useState(() => window.innerWidth);
+  const [height, setHeight] = useState(() => window.innerHeight);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [patternType, setPatternType] = useState<PatternType>('m90');
   const [twoColorMode, setTwoColorMode] = useState(false);
@@ -142,6 +143,81 @@ function App() {
     }
   }, [seed, scale, complexity, glColors, width, height, gifDuration, animationSpeed, digitalCamo, pixelSize]);
 
+  const handleDownloadMp4 = useCallback(async () => {
+    setIsExporting(true);
+    setExportProgress(0);
+
+    const fps = 30;
+    const totalFrames = gifDuration * fps;
+
+    const offscreen = document.createElement('canvas');
+    offscreen.width = width;
+    offscreen.height = height;
+
+    try {
+      const renderer = new M90Renderer(offscreen);
+
+      const muxer = new Muxer({
+        target: new ArrayBufferTarget(),
+        video: {
+          codec: 'avc',
+          width,
+          height,
+        },
+        fastStart: 'in-memory',
+      });
+
+      const encoder = new VideoEncoder({
+        output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+        error: (e) => console.error('VideoEncoder error:', e),
+      });
+
+      encoder.configure({
+        codec: 'avc1.640028',
+        width,
+        height,
+        bitrate: 4_000_000,
+        framerate: fps,
+      });
+
+      for (let i = 0; i < totalFrames; i++) {
+        const time = (i / fps) * animationSpeed;
+        renderer.render(seed, scale, complexity, glColors, 'dazzle', time, animationSpeed, digitalCamo ? pixelSize : 0);
+
+        const frame = new VideoFrame(offscreen, {
+          timestamp: (i / fps) * 1_000_000,
+          duration: (1 / fps) * 1_000_000,
+        });
+        encoder.encode(frame);
+        frame.close();
+
+        setExportProgress(((i + 1) / totalFrames) * 100);
+        await new Promise((r) => setTimeout(r, 0));
+      }
+
+      await encoder.flush();
+      encoder.close();
+      muxer.finalize();
+
+      const blob = new Blob([(muxer.target as ArrayBufferTarget).buffer], { type: 'video/mp4' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dazzle-camo-${seed}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      renderer.dispose();
+    } catch (e) {
+      console.error('MP4 export failed:', e);
+    } finally {
+      setIsExporting(false);
+      setExportProgress(0);
+    }
+  }, [seed, scale, complexity, glColors, width, height, gifDuration, animationSpeed, digitalCamo, pixelSize]);
+
   return (
     <div className="app">
       <div className="canvas-fullscreen">
@@ -197,6 +273,7 @@ function App() {
           onGifDurationChange={setGifDuration}
           onDownload={handleDownload}
           onDownloadGif={handleDownloadGif}
+          onDownloadMp4={handleDownloadMp4}
           onShowHowItWorks={() => setShowHowItWorks(true)}
         />
       </div>

@@ -32,6 +32,7 @@ interface ControlsProps {
   onTwoColorChange: (twoColor: boolean) => void;
   onDownload: () => void;
   onDownloadGif: () => void;
+  onDownloadMp4: () => void;
   onShowHowItWorks: () => void;
 }
 
@@ -66,6 +67,7 @@ function Controls({
   onTwoColorChange,
   onDownload,
   onDownloadGif,
+  onDownloadMp4,
   onShowHowItWorks,
 }: ControlsProps) {
   const randomizeSeed = () => {
@@ -295,6 +297,16 @@ function Controls({
           disabled={isExporting}
         >
           {isExporting ? `Exporting... (${Math.round(exportProgress)}%)` : 'Download GIF'}
+        </button>
+      )}
+
+      {patternType === 'dazzle' && isAnimating && (
+        <button
+          className="btn btn-primary btn-download"
+          onClick={onDownloadMp4}
+          disabled={isExporting}
+        >
+          {isExporting ? `Exporting... (${Math.round(exportProgress)}%)` : 'Download MP4'}
         </button>
       )}
 
