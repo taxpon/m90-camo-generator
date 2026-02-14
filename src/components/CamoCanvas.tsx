@@ -1,5 +1,6 @@
 import { useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { M90Renderer } from '../renderer/WebGLRenderer';
+import type { PatternType } from '../renderer/WebGLRenderer';
 
 interface CamoCanvasProps {
   seed: number;
@@ -8,6 +9,7 @@ interface CamoCanvasProps {
   colors: [number, number, number][];
   width: number;
   height: number;
+  patternType: PatternType;
 }
 
 export interface CamoCanvasHandle {
@@ -15,7 +17,7 @@ export interface CamoCanvasHandle {
 }
 
 const CamoCanvas = forwardRef<CamoCanvasHandle, CamoCanvasProps>(
-  ({ seed, scale, complexity, colors, width, height }, ref) => {
+  ({ seed, scale, complexity, colors, width, height, patternType }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const rendererRef = useRef<M90Renderer | null>(null);
 
@@ -35,14 +37,14 @@ const CamoCanvas = forwardRef<CamoCanvasHandle, CamoCanvasProps>(
         canvas.width = w * dpr;
         canvas.height = h * dpr;
         if (rendererRef.current) {
-          rendererRef.current.render(seed, scale, complexity, colors);
+          rendererRef.current.render(seed, scale, complexity, colors, patternType);
         }
       };
 
       resizeCanvas();
       window.addEventListener('resize', resizeCanvas);
       return () => window.removeEventListener('resize', resizeCanvas);
-    }, [seed, scale, complexity, colors]);
+    }, [seed, scale, complexity, colors, patternType]);
 
     // Render on param changes
     useEffect(() => {
@@ -53,8 +55,8 @@ const CamoCanvas = forwardRef<CamoCanvasHandle, CamoCanvasProps>(
         rendererRef.current = new M90Renderer(canvas);
       }
 
-      rendererRef.current.render(seed, scale, complexity, colors);
-    }, [seed, scale, complexity, colors, width, height]);
+      rendererRef.current.render(seed, scale, complexity, colors, patternType);
+    }, [seed, scale, complexity, colors, width, height, patternType]);
 
     useEffect(() => {
       return () => {

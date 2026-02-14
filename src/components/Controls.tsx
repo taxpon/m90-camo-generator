@@ -1,4 +1,5 @@
 import { COLOR_PRESETS, type ColorPreset } from '../presets';
+import type { PatternType } from '../renderer/WebGLRenderer';
 
 interface ControlsProps {
   seed: number;
@@ -7,12 +8,16 @@ interface ControlsProps {
   presetId: string;
   width: number;
   height: number;
+  patternType: PatternType;
+  twoColorMode: boolean;
   onSeedChange: (seed: number) => void;
   onScaleChange: (scale: number) => void;
   onComplexityChange: (complexity: number) => void;
   onPresetChange: (presetId: string) => void;
   onWidthChange: (width: number) => void;
   onHeightChange: (height: number) => void;
+  onPatternChange: (patternType: PatternType) => void;
+  onTwoColorChange: (twoColor: boolean) => void;
   onDownload: () => void;
   onShowHowItWorks: () => void;
 }
@@ -24,12 +29,16 @@ function Controls({
   presetId,
   width,
   height,
+  patternType,
+  twoColorMode,
   onSeedChange,
   onScaleChange,
   onComplexityChange,
   onPresetChange,
   onWidthChange,
   onHeightChange,
+  onPatternChange,
+  onTwoColorChange,
   onDownload,
   onShowHowItWorks,
 }: ControlsProps) {
@@ -40,8 +49,40 @@ function Controls({
   return (
     <div className="sidebar">
       <h1>
-        <span>M90</span> Camo Generator
+        <span>{patternType === 'm90' ? 'M90' : 'Dazzle'}</span> Camo Generator
       </h1>
+
+      <div className="pattern-toggle">
+        <button
+          className={`pattern-btn${patternType === 'm90' ? ' pattern-active' : ''}`}
+          onClick={() => onPatternChange('m90')}
+        >
+          M90
+        </button>
+        <button
+          className={`pattern-btn${patternType === 'dazzle' ? ' pattern-active' : ''}`}
+          onClick={() => onPatternChange('dazzle')}
+        >
+          Dazzle
+        </button>
+      </div>
+
+      {patternType === 'dazzle' && (
+        <div className="pattern-toggle">
+          <button
+            className={`pattern-btn${!twoColorMode ? ' pattern-active' : ''}`}
+            onClick={() => onTwoColorChange(false)}
+          >
+            4 Colors
+          </button>
+          <button
+            className={`pattern-btn${twoColorMode ? ' pattern-active' : ''}`}
+            onClick={() => onTwoColorChange(true)}
+          >
+            2 Colors
+          </button>
+        </div>
+      )}
 
       <div className="control-group">
         <label>Color Preset</label>

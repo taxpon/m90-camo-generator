@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { CamoCanvas } from './components/CamoCanvas';
 import type { CamoCanvasHandle } from './components/CamoCanvas';
 import { M90Renderer } from './renderer/WebGLRenderer';
+import type { PatternType } from './renderer/WebGLRenderer';
 import { COLOR_PRESETS, hexToGL } from './presets';
 import Controls from './components/Controls';
 import HowItWorks from './components/HowItWorks';
@@ -30,6 +31,8 @@ function App() {
   const [width, setWidth] = useState(1024);
   const [height, setHeight] = useState(1024);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [patternType, setPatternType] = useState<PatternType>('m90');
+  const [twoColorMode, setTwoColorMode] = useState(false);
   const canvasRef = useRef<CamoCanvasHandle>(null);
 
   const isMobile = useIsMobile();
@@ -42,8 +45,12 @@ function App() {
 
   const glColors = useMemo(() => {
     const preset = COLOR_PRESETS.find((p) => p.id === presetId) ?? COLOR_PRESETS[0];
-    return preset.colors.map(hexToGL);
-  }, [presetId]);
+    const all = preset.colors.map(hexToGL);
+    if (twoColorMode && patternType === 'dazzle') {
+      return [all[0], all[1], all[0], all[1]];
+    }
+    return all;
+  }, [presetId, twoColorMode, patternType]);
 
   const handleDownload = useCallback(() => {
     const offscreen = document.createElement('canvas');
@@ -52,14 +59,14 @@ function App() {
 
     try {
       const renderer = new M90Renderer(offscreen);
-      renderer.render(seed, scale, complexity, glColors);
+      renderer.render(seed, scale, complexity, glColors, patternType);
 
       offscreen.toBlob((blob) => {
         if (!blob) return;
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `m90-camo-${seed}.png`;
+        a.download = `${patternType}-camo-${seed}.png`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -70,7 +77,7 @@ function App() {
     } catch (e) {
       console.error('Download failed:', e);
     }
-  }, [seed, scale, complexity, glColors, width, height]);
+  }, [seed, scale, complexity, glColors, width, height, patternType]);
 
   return (
     <div className="app">
@@ -83,6 +90,7 @@ function App() {
           colors={glColors}
           width={width}
           height={height}
+          patternType={patternType}
         />
       </div>
 
@@ -98,12 +106,16 @@ function App() {
           presetId={presetId}
           width={width}
           height={height}
+          patternType={patternType}
+          twoColorMode={twoColorMode}
           onSeedChange={setSeed}
           onScaleChange={setScale}
           onComplexityChange={setComplexity}
           onPresetChange={setPresetId}
           onWidthChange={setWidth}
           onHeightChange={setHeight}
+          onPatternChange={setPatternType}
+          onTwoColorChange={setTwoColorMode}
           onDownload={handleDownload}
           onShowHowItWorks={() => setShowHowItWorks(true)}
         />

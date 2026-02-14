@@ -85,6 +85,21 @@ export const COLOR_PRESETS: ColorPreset[] = [
     name: 'Coral Reef',
     colors: ['#FF7F6B', '#1B8C8C', '#FFB89A', '#104050'],
   },
+  {
+    id: 'dazzle-classic',
+    name: 'Dazzle Classic',
+    colors: ['#FFFFFF', '#0A0A0A', '#1B2A4A', '#808080'],
+  },
+  {
+    id: 'dazzle-atlantic',
+    name: 'Dazzle Atlantic',
+    colors: ['#B0B8C0', '#0F1B2D', '#3A5A80', '#6A7A8A'],
+  },
+  {
+    id: 'dazzle-zebra',
+    name: 'Dazzle Zebra',
+    colors: ['#F0F0F0', '#1A1A1A', '#C0C0C0', '#3A3A3A'],
+  },
 ];
 
 // Convert hex color string to [r, g, b] in 0-1 range

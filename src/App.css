@@ -58,6 +58,42 @@
   color: #6b8f5e;
 }
 
+/* Pattern toggle */
+.pattern-toggle {
+  display: flex;
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.pattern-btn {
+  flex: 1;
+  padding: 8px 0;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.pattern-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.pattern-active {
+  background: rgba(107, 143, 94, 0.3);
+  color: #b0d0a0;
+}
+
+.pattern-active:hover {
+  background: rgba(107, 143, 94, 0.4);
+}
+
 /* Control groups */
 .control-group {
   display: flex;
