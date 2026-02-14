@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import { GIFEncoder, quantize, applyPalette } from 'gifenc';
 import { CamoCanvas } from './components/CamoCanvas';
 import type { CamoCanvasHandle } from './components/CamoCanvas';
 import { M90Renderer } from './renderer/WebGLRenderer';
@@ -33,6 +34,11 @@ function App() {
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [patternType, setPatternType] = useState<PatternType>('m90');
   const [twoColorMode, setTwoColorMode] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationSpeed, setAnimationSpeed] = useState(1.0);
+  const [gifDuration, setGifDuration] = useState(3);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
   const canvasRef = useRef<CamoCanvasHandle>(null);
 
   const isMobile = useIsMobile();
@@ -79,6 +85,61 @@ function App() {
     }
   }, [seed, scale, complexity, glColors, width, height, patternType]);
 
+  const handleDownloadGif = useCallback(async () => {
+    setIsExporting(true);
+    setExportProgress(0);
+
+    const fps = 15;
+    const totalFrames = gifDuration * fps;
+    const delay = Math.round(1000 / fps);
+
+    const offscreen = document.createElement('canvas');
+    offscreen.width = width;
+    offscreen.height = height;
+
+    try {
+      const renderer = new M90Renderer(offscreen);
+      const ctx2d = document.createElement('canvas').getContext('2d')!;
+      ctx2d.canvas.width = width;
+      ctx2d.canvas.height = height;
+
+      const gif = GIFEncoder();
+
+      for (let i = 0; i < totalFrames; i++) {
+        const time = (i / fps) * animationSpeed;
+        renderer.render(seed, scale, complexity, glColors, 'dazzle', time, animationSpeed);
+
+        ctx2d.drawImage(offscreen, 0, 0);
+        const imageData = ctx2d.getImageData(0, 0, width, height);
+
+        const palette = quantize(imageData.data, 256);
+        const index = applyPalette(imageData.data, palette);
+        gif.writeFrame(index, width, height, { palette, delay });
+
+        setExportProgress(((i + 1) / totalFrames) * 100);
+        await new Promise((r) => setTimeout(r, 0));
+      }
+
+      gif.finish();
+      const blob = new Blob([gif.bytes()], { type: 'image/gif' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dazzle-camo-${seed}.gif`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      renderer.dispose();
+    } catch (e) {
+      console.error('GIF export failed:', e);
+    } finally {
+      setIsExporting(false);
+      setExportProgress(0);
+    }
+  }, [seed, scale, complexity, glColors, width, height, gifDuration, animationSpeed]);
+
   return (
     <div className="app">
       <div className="canvas-fullscreen">
@@ -91,6 +152,8 @@ function App() {
           width={width}
           height={height}
           patternType={patternType}
+          isAnimating={isAnimating}
+          animationSpeed={animationSpeed}
         />
       </div>
 
@@ -116,7 +179,16 @@ function App() {
           onHeightChange={setHeight}
           onPatternChange={setPatternType}
           onTwoColorChange={setTwoColorMode}
+          isAnimating={isAnimating}
+          animationSpeed={animationSpeed}
+          gifDuration={gifDuration}
+          isExporting={isExporting}
+          exportProgress={exportProgress}
+          onAnimateChange={setIsAnimating}
+          onAnimationSpeedChange={setAnimationSpeed}
+          onGifDurationChange={setGifDuration}
           onDownload={handleDownload}
+          onDownloadGif={handleDownloadGif}
           onShowHowItWorks={() => setShowHowItWorks(true)}
         />
       </div>

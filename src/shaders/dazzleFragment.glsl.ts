@@ -9,6 +9,8 @@ uniform vec3 u_color0;
 uniform vec3 u_color1;
 uniform vec3 u_color2;
 uniform vec3 u_color3;
+uniform float u_time;
+uniform float u_speed;
 
 out vec4 fragColor;
 
@@ -78,7 +80,9 @@ void main() {
     float sa = sin(stripeAngle);
     float proj = st.x * ca + st.y * sa;
     float freqVar = mix(0.7, 1.4, fract(regionId * 11.3));
-    float stripe = step(0.5, fract(proj * stripeFreq * freqVar + regionId * 10.0));
+    float scrollSpeed = mix(0.3, 0.8, fract(regionId * 17.3));
+    float scrollDir = fract(regionId * 23.7) > 0.5 ? 1.0 : -1.0;
+    float stripe = step(0.5, fract(proj * stripeFreq * freqVar + regionId * 10.0 + u_time * scrollSpeed * scrollDir * u_speed));
 
     vec3 color = stripe > 0.5 ? getColor(colorA) : getColor(colorB);
 
@@ -95,7 +99,9 @@ void main() {
             float sa2 = sin(angle2);
             float proj2 = st.x * ca2 + st.y * sa2;
             float freq2 = stripeFreq * mix(0.6, 1.3, fract(regionId2 * 9.7));
-            float stripe2 = step(0.5, fract(proj2 * freq2 + regionId2 * 10.0));
+            float scrollSpeed2 = mix(0.3, 0.8, fract(regionId2 * 17.3));
+            float scrollDir2 = fract(regionId2 * 23.7) > 0.5 ? 1.0 : -1.0;
+            float stripe2 = step(0.5, fract(proj2 * freq2 + regionId2 * 10.0 + u_time * scrollSpeed2 * scrollDir2 * u_speed));
 
             int col2a = int(fract(regionId2 * 4.0) * 4.0);
             int col2b = col2a ^ (fract(regionId2 * 9.7) > 0.5 ? 1 : 3);
@@ -116,7 +122,9 @@ void main() {
             float sa3 = sin(angle3);
             float proj3 = st.x * ca3 + st.y * sa3;
             float freq3 = stripeFreq * mix(0.8, 1.5, fract(regionId3 * 6.3));
-            float stripe3 = step(0.5, fract(proj3 * freq3 + regionId3 * 10.0));
+            float scrollSpeed3 = mix(0.3, 0.8, fract(regionId3 * 17.3));
+            float scrollDir3 = fract(regionId3 * 23.7) > 0.5 ? 1.0 : -1.0;
+            float stripe3 = step(0.5, fract(proj3 * freq3 + regionId3 * 10.0 + u_time * scrollSpeed3 * scrollDir3 * u_speed));
 
             int col3a = int(fract(regionId3 * 4.0) * 4.0);
             int col3b = col3a ^ (fract(regionId3 * 6.3) > 0.5 ? 1 : 3);

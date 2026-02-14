@@ -10,6 +10,14 @@ interface ControlsProps {
   height: number;
   patternType: PatternType;
   twoColorMode: boolean;
+  isAnimating: boolean;
+  animationSpeed: number;
+  gifDuration: number;
+  isExporting: boolean;
+  exportProgress: number;
+  onAnimateChange: (animating: boolean) => void;
+  onAnimationSpeedChange: (speed: number) => void;
+  onGifDurationChange: (duration: number) => void;
   onSeedChange: (seed: number) => void;
   onScaleChange: (scale: number) => void;
   onComplexityChange: (complexity: number) => void;
@@ -19,6 +27,7 @@ interface ControlsProps {
   onPatternChange: (patternType: PatternType) => void;
   onTwoColorChange: (twoColor: boolean) => void;
   onDownload: () => void;
+  onDownloadGif: () => void;
   onShowHowItWorks: () => void;
 }
 
@@ -31,6 +40,14 @@ function Controls({
   height,
   patternType,
   twoColorMode,
+  isAnimating,
+  animationSpeed,
+  gifDuration,
+  isExporting,
+  exportProgress,
+  onAnimateChange,
+  onAnimationSpeedChange,
+  onGifDurationChange,
   onSeedChange,
   onScaleChange,
   onComplexityChange,
@@ -40,6 +57,7 @@ function Controls({
   onPatternChange,
   onTwoColorChange,
   onDownload,
+  onDownloadGif,
   onShowHowItWorks,
 }: ControlsProps) {
   const randomizeSeed = () => {
@@ -82,6 +100,56 @@ function Controls({
             2 Colors
           </button>
         </div>
+      )}
+
+      {patternType === 'dazzle' && (
+        <div className="pattern-toggle">
+          <button
+            className={`pattern-btn${!isAnimating ? ' pattern-active' : ''}`}
+            onClick={() => onAnimateChange(false)}
+          >
+            Static
+          </button>
+          <button
+            className={`pattern-btn${isAnimating ? ' pattern-active' : ''}`}
+            onClick={() => onAnimateChange(true)}
+          >
+            Animate
+          </button>
+        </div>
+      )}
+
+      {patternType === 'dazzle' && isAnimating && (
+        <>
+          <div className="control-group">
+            <label>Speed</label>
+            <div className="slider-row">
+              <input
+                type="range"
+                min={0.1}
+                max={3}
+                step={0.1}
+                value={animationSpeed}
+                onChange={(e) => onAnimationSpeedChange(Number(e.target.value))}
+              />
+              <span className="slider-value">{animationSpeed.toFixed(1)}</span>
+            </div>
+          </div>
+          <div className="control-group">
+            <label>Duration</label>
+            <div className="slider-row">
+              <input
+                type="range"
+                min={1}
+                max={10}
+                step={1}
+                value={gifDuration}
+                onChange={(e) => onGifDurationChange(Number(e.target.value))}
+              />
+              <span className="slider-value">{gifDuration}s</span>
+            </div>
+          </div>
+        </>
       )}
 
       <div className="control-group">
@@ -179,6 +247,16 @@ function Controls({
       <button className="btn btn-primary btn-download" onClick={onDownload}>
         Download PNG
       </button>
+
+      {patternType === 'dazzle' && isAnimating && (
+        <button
+          className="btn btn-primary btn-download"
+          onClick={onDownloadGif}
+          disabled={isExporting}
+        >
+          {isExporting ? `Exporting... (${Math.round(exportProgress)}%)` : 'Download GIF'}
+        </button>
+      )}
 
       <button className="btn-how" onClick={onShowHowItWorks}>
         How it works

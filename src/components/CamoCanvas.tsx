@@ -10,6 +10,8 @@ interface CamoCanvasProps {
   width: number;
   height: number;
   patternType: PatternType;
+  isAnimating: boolean;
+  animationSpeed: number;
 }
 
 export interface CamoCanvasHandle {
@@ -17,7 +19,7 @@ export interface CamoCanvasHandle {
 }
 
 const CamoCanvas = forwardRef<CamoCanvasHandle, CamoCanvasProps>(
-  ({ seed, scale, complexity, colors, width, height, patternType }, ref) => {
+  ({ seed, scale, complexity, colors, width, height, patternType, isAnimating, animationSpeed }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const rendererRef = useRef<M90Renderer | null>(null);
 
@@ -46,8 +48,9 @@ const CamoCanvas = forwardRef<CamoCanvasHandle, CamoCanvasProps>(
       return () => window.removeEventListener('resize', resizeCanvas);
     }, [seed, scale, complexity, colors, patternType]);
 
-    // Render on param changes
+    // Render on param changes (skip if animation loop is active)
     useEffect(() => {
+      if (isAnimating && patternType === 'dazzle') return;
       const canvas = canvasRef.current;
       if (!canvas) return;
 
@@ -56,7 +59,31 @@ const CamoCanvas = forwardRef<CamoCanvasHandle, CamoCanvasProps>(
       }
 
       rendererRef.current.render(seed, scale, complexity, colors, patternType);
-    }, [seed, scale, complexity, colors, width, height, patternType]);
+    }, [seed, scale, complexity, colors, width, height, patternType, isAnimating]);
+
+    // Animation loop for dazzle stripe scrolling
+    useEffect(() => {
+      if (!isAnimating || patternType !== 'dazzle') return;
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      if (!rendererRef.current) {
+        rendererRef.current = new M90Renderer(canvas);
+      }
+
+      let rafId: number;
+      let startTime: number | null = null;
+
+      const animate = (timestamp: number) => {
+        if (startTime === null) startTime = timestamp;
+        const elapsed = (timestamp - startTime) / 1000;
+        rendererRef.current!.render(seed, scale, complexity, colors, patternType, elapsed, animationSpeed);
+        rafId = requestAnimationFrame(animate);
+      };
+
+      rafId = requestAnimationFrame(animate);
+      return () => cancelAnimationFrame(rafId);
+    }, [isAnimating, patternType, seed, scale, complexity, colors, animationSpeed]);
 
     useEffect(() => {
       return () => {

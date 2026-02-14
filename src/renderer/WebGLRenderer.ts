@@ -14,6 +14,8 @@ interface ProgramInfo {
   uColor1: WebGLUniformLocation;
   uColor2: WebGLUniformLocation;
   uColor3: WebGLUniformLocation;
+  uTime: WebGLUniformLocation | null;
+  uSpeed: WebGLUniformLocation | null;
 }
 
 export class M90Renderer {
@@ -64,7 +66,9 @@ export class M90Renderer {
     scale: number,
     complexity: number = 0.5,
     colors?: [number, number, number][],
-    patternType: PatternType = 'm90'
+    patternType: PatternType = 'm90',
+    time: number = 0,
+    speed: number = 1
   ): void {
     const { gl } = this;
     const info = this.programs[patternType];
@@ -80,6 +84,8 @@ export class M90Renderer {
     gl.uniform1f(info.uSeed, seed);
     gl.uniform1f(info.uScale, scale);
     gl.uniform1f(info.uComplexity, complexity);
+    gl.uniform1f(info.uTime, time);
+    gl.uniform1f(info.uSpeed, speed);
 
     const c = colors ?? [
       [0.502, 0.502, 0.188],
@@ -135,6 +141,8 @@ export class M90Renderer {
       uColor1: gl.getUniformLocation(program, "u_color1")!,
       uColor2: gl.getUniformLocation(program, "u_color2")!,
       uColor3: gl.getUniformLocation(program, "u_color3")!,
+      uTime: gl.getUniformLocation(program, "u_time"),
+      uSpeed: gl.getUniformLocation(program, "u_speed"),
     };
   }
 
