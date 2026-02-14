@@ -11,6 +11,7 @@ uniform vec3 u_color2;
 uniform vec3 u_color3;
 uniform float u_time;
 uniform float u_speed;
+uniform float u_pixelate;
 
 out vec4 fragColor;
 
@@ -48,6 +49,11 @@ float regionHash(vec2 cellA, vec2 cellB, float seed) {
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution;
     uv.x *= u_resolution.x / u_resolution.y;
+
+    if (u_pixelate > 0.0) {
+        vec2 pixelSize = u_pixelate / u_resolution;
+        uv = floor(uv / pixelSize) * pixelSize + pixelSize * 0.5;
+    }
 
     float seed = fract(u_seed * 0.0013) * 100.0;
     vec2 st = uv * u_scale;

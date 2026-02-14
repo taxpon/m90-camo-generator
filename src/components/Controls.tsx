@@ -13,8 +13,12 @@ interface ControlsProps {
   isAnimating: boolean;
   animationSpeed: number;
   gifDuration: number;
+  digitalCamo: boolean;
+  pixelSize: number;
   isExporting: boolean;
   exportProgress: number;
+  onDigitalCamoChange: (digital: boolean) => void;
+  onPixelSizeChange: (size: number) => void;
   onAnimateChange: (animating: boolean) => void;
   onAnimationSpeedChange: (speed: number) => void;
   onGifDurationChange: (duration: number) => void;
@@ -40,11 +44,15 @@ function Controls({
   height,
   patternType,
   twoColorMode,
+  digitalCamo,
+  pixelSize,
   isAnimating,
   animationSpeed,
   gifDuration,
   isExporting,
   exportProgress,
+  onDigitalCamoChange,
+  onPixelSizeChange,
   onAnimateChange,
   onAnimationSpeedChange,
   onGifDurationChange,
@@ -116,6 +124,38 @@ function Controls({
           >
             Animate
           </button>
+        </div>
+      )}
+
+      <div className="pattern-toggle">
+        <button
+          className={`pattern-btn${!digitalCamo ? ' pattern-active' : ''}`}
+          onClick={() => onDigitalCamoChange(false)}
+        >
+          Off
+        </button>
+        <button
+          className={`pattern-btn${digitalCamo ? ' pattern-active' : ''}`}
+          onClick={() => onDigitalCamoChange(true)}
+        >
+          Digital
+        </button>
+      </div>
+
+      {digitalCamo && (
+        <div className="control-group">
+          <label>Pixel Size</label>
+          <div className="slider-row">
+            <input
+              type="range"
+              min={2}
+              max={32}
+              step={1}
+              value={pixelSize}
+              onChange={(e) => onPixelSizeChange(Number(e.target.value))}
+            />
+            <span className="slider-value">{pixelSize}</span>
+          </div>
         </div>
       )}
 

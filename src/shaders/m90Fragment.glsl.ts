@@ -9,6 +9,7 @@ uniform vec3 u_color0; // base color A (like bright green)
 uniform vec3 u_color1; // base color B (like dark green)
 uniform vec3 u_color2; // accent color A (like tan)
 uniform vec3 u_color3; // accent color B (like navy)
+uniform float u_pixelate;
 
 out vec4 fragColor;
 
@@ -84,6 +85,11 @@ bool isMergedRegion(vec2 st, float seed, float groupScale, float threshold, floa
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution;
     uv.x *= u_resolution.x / u_resolution.y;
+
+    if (u_pixelate > 0.0) {
+        vec2 pixelSize = u_pixelate / u_resolution;
+        uv = floor(uv / pixelSize) * pixelSize + pixelSize * 0.5;
+    }
 
     float seed = fract(u_seed * 0.0013) * 100.0;
     vec2 st = uv * u_scale;

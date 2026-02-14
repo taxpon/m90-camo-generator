@@ -37,6 +37,8 @@ function App() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationSpeed, setAnimationSpeed] = useState(1.0);
   const [gifDuration, setGifDuration] = useState(3);
+  const [digitalCamo, setDigitalCamo] = useState(false);
+  const [pixelSize, setPixelSize] = useState(8);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const canvasRef = useRef<CamoCanvasHandle>(null);
@@ -65,7 +67,7 @@ function App() {
 
     try {
       const renderer = new M90Renderer(offscreen);
-      renderer.render(seed, scale, complexity, glColors, patternType);
+      renderer.render(seed, scale, complexity, glColors, patternType, 0, 1, digitalCamo ? pixelSize : 0);
 
       offscreen.toBlob((blob) => {
         if (!blob) return;
@@ -83,7 +85,7 @@ function App() {
     } catch (e) {
       console.error('Download failed:', e);
     }
-  }, [seed, scale, complexity, glColors, width, height, patternType]);
+  }, [seed, scale, complexity, glColors, width, height, patternType, digitalCamo, pixelSize]);
 
   const handleDownloadGif = useCallback(async () => {
     setIsExporting(true);
@@ -107,7 +109,7 @@ function App() {
 
       for (let i = 0; i < totalFrames; i++) {
         const time = (i / fps) * animationSpeed;
-        renderer.render(seed, scale, complexity, glColors, 'dazzle', time, animationSpeed);
+        renderer.render(seed, scale, complexity, glColors, 'dazzle', time, animationSpeed, digitalCamo ? pixelSize : 0);
 
         ctx2d.drawImage(offscreen, 0, 0);
         const imageData = ctx2d.getImageData(0, 0, width, height);
@@ -138,7 +140,7 @@ function App() {
       setIsExporting(false);
       setExportProgress(0);
     }
-  }, [seed, scale, complexity, glColors, width, height, gifDuration, animationSpeed]);
+  }, [seed, scale, complexity, glColors, width, height, gifDuration, animationSpeed, digitalCamo, pixelSize]);
 
   return (
     <div className="app">
@@ -154,6 +156,8 @@ function App() {
           patternType={patternType}
           isAnimating={isAnimating}
           animationSpeed={animationSpeed}
+          digitalCamo={digitalCamo}
+          pixelSize={pixelSize}
         />
       </div>
 
@@ -179,11 +183,15 @@ function App() {
           onHeightChange={setHeight}
           onPatternChange={setPatternType}
           onTwoColorChange={setTwoColorMode}
+          digitalCamo={digitalCamo}
+          pixelSize={pixelSize}
           isAnimating={isAnimating}
           animationSpeed={animationSpeed}
           gifDuration={gifDuration}
           isExporting={isExporting}
           exportProgress={exportProgress}
+          onDigitalCamoChange={setDigitalCamo}
+          onPixelSizeChange={setPixelSize}
           onAnimateChange={setIsAnimating}
           onAnimationSpeedChange={setAnimationSpeed}
           onGifDurationChange={setGifDuration}
